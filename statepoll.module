@@ -1,0 +1,127 @@
+<?php
+
+function statepoll_menu() {
+    $items = array();
+    $items['statepoll'] = array(
+        'title' => 'State Poll',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('statepoll_form'),
+        'access callback' => TRUE,
+        'type' => MENU_NORMAL_ITEM,
+    );
+    $items['statepoll_success'] = array(
+        'title' => 'Poll Results',
+        'page callback' => 'statepoll_success',
+        'access callback' => TRUE,
+        'type' => MENU_CALLBACK,
+    );
+    return $items;
+}
+
+function statepoll_form() {
+    $form['flavor'] = array(
+        '#title' => 'Ice Cream Flavor',
+        '#type' => 'textfield',
+        '#description' => t('Enter your favorite ice cream flavor'),
+        // '#element_validate' => array(),
+        '#required' => TRUE,
+    );
+    $form['state'] = array(
+        '#title' => 'State',
+        '#type' => 'textfield',
+        '#description' => t('What state are you from?'),
+        '#element_validate' => array('element_validate_state'),
+        '#required' => TRUE,
+    );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Enter',
+    );
+    return $form;
+}
+
+function element_validate_state($element) {
+
+    $user_state = strtoupper($element['#value']);
+
+    $states_list = array(
+        'AL'=>'ALABAMA',
+        'AK'=>'ALASKA',
+        'AZ'=>'ARIZONA',
+        'AR'=>'ARKANSAS',
+        'CA'=>'CALIFORNIA',
+        'CO'=>'COLORADO',
+        'CT'=>'CONNECTICUT',
+        'DE'=>'DELAWARE',
+        'DC'=>'DISTRICT OF COLUMBIA',
+        'FL'=>'FLORIDA',
+        'GA'=>'GEORGIA',
+        'HI'=>'HAWAII',
+        'ID'=>'IDAHO',
+        'IL'=>'ILLINOIS',
+        'IN'=>'INDIANA',
+        'IA'=>'IOWA',
+        'KS'=>'KANSAS',
+        'KY'=>'KENTUCKY',
+        'LA'=>'LOUISIANA',
+        'ME'=>'MAINE',
+        'MD'=>'MARYLAND',
+        'MA'=>'MASSACHUSETTS',
+        'MI'=>'MICHIGAN',
+        'MN'=>'MINNESOTA',
+        'MS'=>'MISSISSIPPI',
+        'MO'=>'MISSOURI',
+        'MT'=>'MONTANA',
+        'NE'=>'NEBRASKA',
+        'NV'=>'NEVADA',
+        'NH'=>'NEW HAMPSHIRE',
+        'NJ'=>'NEW JERSEY',
+        'NM'=>'NEW MEXICO',
+        'NY'=>'NEW YORK',
+        'NC'=>'NORTH CAROLINA',
+        'ND'=>'NORTH DAKOTA',
+        'OH'=>'OHIO',
+        'OK'=>'OKLAHOMA',
+        'OR'=>'OREGON',
+        'PA'=>'PENNSYLVANIA',
+        'RI'=>'RHODE ISLAND',
+        'SC'=>'SOUTH CAROLINA',
+        'SD'=>'SOUTH DAKOTA',
+        'TN'=>'TENNESSEE',
+        'TX'=>'TEXAS',
+        'UT'=>'UTAH',
+        'VT'=>'VERMONT',
+        'VA'=>'VIRGINIA',
+        'WA'=>'WASHINGTON',
+        'WV'=>'WEST VIRGINIA',
+        'WI'=>'WISCONSIN',
+        'WY'=>'WYOMING',
+    );
+
+    //set user input to all caps first
+    //if in states array values side, its the full name, cool
+    if(in_array($user_state, $states_list)) {
+        $_SESSION['user_state_full_name'] = $user_state;
+        drupal_set_message('Full state name detected');
+    }
+    else if (array_key_exists($user_state, $states_list)) {
+        $_SESSION['user_state_full_name'] = $states_list[$user_state];
+        drupal_set_message('State abbreviation detected');
+    }
+    else {
+        form_error($element, t('You failed 5th grade geography.'));
+    }
+}
+
+function statepoll_form_submit($form, &$form_state) {
+    $state = ucfirst(strtolower($_SESSION['user_state_full_name']));
+    $flavor = $form_state['values']['flavor'];
+
+    $output = "We have you down as " . $flavor . " in the state of " . $state . ".";
+    $_SESSION['output'] = $output;
+    $form_state['redirect'] = 'statepoll_success';
+}
+
+function statepoll_success() {
+    return $_SESSION['output'];
+}
